@@ -1,235 +1,184 @@
 import pygame
 import sys
-import math
+
+from constants import (
+    WIDTH, HEIGHT, FPS, BLACK, WHITE,
+    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED
+)
+from camera import Camera
+from graphics import Graphics
+from viewport import Viewport
+from menu import MenuSystem
+from game import Game
 from player import Player
-from rooms import Room
-
-""" Configuração da Tela e Cores"""
-WIDTH, HEIGHT = 700, 500
-FPS = 60
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY  = (160, 160, 160)
-RED   = (200, 50, 50)
-BLUE  = (50, 50, 200)
-GREEN = (50, 200, 50)
-
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("NC2A - Game")
-clock = pygame.time.Clock()
-
-""" Função set_pixel """
-def set_pixel(x, y, color):
-    if 0 <= x < WIDTH and 0 <= y < HEIGHT:
-        screen.set_at((x, y), color)
-
-""" Função draw_line (Bresenham) """
-def draw_line(x0, y0, x1, y1, color):
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    sx = 1 if x0 < x1 else -1
-    sy = 1 if y0 < y1 else -1
-    err = dx - dy
-
-    while True:
-        set_pixel(x0, y0, color)
-        if x0 == x1 and y0 == y1:
-            break
-        e2 = err * 2
-        if e2 > -dy:
-            err -= dy
-            x0 += sx
-        if e2 < dx:
-            err += dx
-            y0 += sy
-
-""" Funções de desenho de retângulos """
-def draw_rect(x, y, w, h, color):
-    draw_line(x, y, x + w, y, color)
-    draw_line(x, y, x, y + h, color)
-    draw_line(x + w, y, x + w, y + h, color)
-    draw_line(x, y + h, x + w, y + h, color)
-
-""" Preenche um retângulo """
-def fill_rect(x, y, w, h, color):
-    for iy in range(y + 1, y + h):
-        draw_line(x + 1, iy, x + w - 1, iy, color)
 
 
+def main():
+    """
+        Ponto de Entrada do Jogo NC2A
+        =========================================
+        Este arquivo é o ponto de entrada principal do jogo.
+        Coordena todos os módulos e executa o loop principal.
+        
+        Estrutura Modular:
+        ------------------
+        - constants.py       : Constantes e configurações (cores, dimensões, estados)
+        - camera.py          : Sistema de câmera (posição, zoom, transformações)
+        - clipping.py        : Algoritmo de Cohen-Sutherland para clipping de linhas
+        - transformations.py : Transformações geométricas (rotação, escala, translação)
+        - graphics.py        : Primitivas de desenho (set_pixel, linha, círculo, texturas)
+        - viewport.py        : Sistema de mini-mapa
+        - menu.py            : Sistema de menus (principal, pausa, controles)
+        - game.py            : Lógica principal do jogo (salas, colisão, tarefas)
+        - rooms.py           : Classe das salas (portas, lousas, animação)
+        - player.py          : Classe do jogador (movimento, desenho)
+    """
 
-""" Verifica interseção entre retângulos (colisao)"""
-def intersects(r1, r2):
-    return r1.colliderect(pygame.Rect(*r2))
+    """Inicialização do Pygame"""
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("NC2A - Game")
+    clock = pygame.time.Clock()
+    
+    """Inicializa sistemas"""
+    camera = Camera()
+    graphics = Graphics(screen, camera)
+    viewport = Viewport(screen, graphics)
+    menu_system = MenuSystem(screen, graphics)
+    
+    """Cria o jogador (usa funções de desenho do graphics)"""
+    player = Player(395, 240, graphics.draw_line, graphics.fill_rect, 
+                    camera.get_camera, screen)
+    
+    """Cria o jogo (gerencia salas, colisão, tarefas)"""
+    game = Game(screen, graphics, camera, player, menu_system, viewport)
+    
+    """Variáveis de estado local"""
+    show_controls = False
+    
+    """Loop principal do jogo"""
+    running = True
+    while running:
+        dt = clock.tick(FPS) / 1000.0
+        
+        game.update(dt)
+        screen.fill(WHITE)
+        
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        mouse_clicked = False
+        
+        """Processamento de eventos"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_clicked = True
+            
+            elif event.type == pygame.KEYDOWN:
+                if game.state == GAME_STATE_MENU:
+                    if show_controls:
+                        show_controls = False
+                    elif event.key in (pygame.K_w, pygame.K_UP):
+                        menu_system.selected = (menu_system.selected - 1) % 3
+                    elif event.key in (pygame.K_s, pygame.K_DOWN):
+                        menu_system.selected = (menu_system.selected + 1) % 3
+                    elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                        if menu_system.selected == 0:
+                            game.state = GAME_STATE_PLAYING
+                        elif menu_system.selected == 1:
+                            show_controls = True
+                        elif menu_system.selected == 2:
+                            running = False
+                
+                    """ Jogando"""
+                elif game.state == GAME_STATE_PLAYING:
+                    if event.key == pygame.K_ESCAPE:
+                        game.state = GAME_STATE_PAUSED
+                        menu_system.selected = 0
+                
+                    """ Pausado"""
+                elif game.state == GAME_STATE_PAUSED:
+                    if event.key == pygame.K_ESCAPE:
+                        game.state = GAME_STATE_PLAYING
+                    elif event.key in (pygame.K_w, pygame.K_UP):
+                        menu_system.selected = (menu_system.selected - 1) % 3
+                    elif event.key in (pygame.K_s, pygame.K_DOWN):
+                        menu_system.selected = (menu_system.selected + 1) % 3
+                    elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                        if menu_system.selected == 0:
+                            game.state = GAME_STATE_PLAYING
+                        elif menu_system.selected == 1:
+                            game.state = GAME_STATE_MENU
+                            menu_system.selected = 0
+                            game.reset_game()
+                        elif menu_system.selected == 2:
+                            running = False
+        
+        """Renderização e lógica por estado"""
+        
+        if game.state == GAME_STATE_MENU:
+            if show_controls:
+                menu_system.draw_controls_screen()
+            else:
+                """Interação com mouse no menu"""
+                for i in range(3):
+                    option_rect = menu_system.get_main_menu_option_rect(i)
+                    if option_rect.collidepoint(mouse_x, mouse_y):
+                        menu_system.selected = i
+                        if mouse_clicked:
+                            if i == 0:
+                                game.state = GAME_STATE_PLAYING
+                            elif i == 1:
+                                show_controls = True
+                            elif i == 2:
+                                running = False
+                
+                menu_system.draw_main_menu(game.rotation_angle)
 
-""" Barra de Progresso """
-def draw_progress_bar(x, y, w, progress):
-    draw_rect(x, y, w, 10, WHITE)
-    fill = int(w * progress)
-    if fill > 0:
-        fill_rect(x, y, fill, 10, GREEN)
+        
+        elif game.state == GAME_STATE_PLAYING:
+            """ Captura teclas"""
+            keys = pygame.key.get_pressed()
+            
+            """ Atualiza o jogo"""
+            game.update_playing(dt, keys)
+            
+            """ Processa clique do mouse"""
+            if mouse_clicked:
+                game.handle_mouse_click(mouse_x, mouse_y)
+            
+            """ Desenha o jogo"""
+            game.draw_playing()
+        
+        
+        elif game.state == GAME_STATE_PAUSED:
+            """ Desenha jogo por baixo (congelado)"""
+            game.draw_playing()
+            
+            """ Interação com mouse no menu de pausa"""
+            for i in range(3):
+                option_rect = menu_system.get_pause_menu_option_rect(i)
+                if option_rect.collidepoint(mouse_x, mouse_y):
+                    menu_system.selected = i
+                    if mouse_clicked:
+                        if i == 0:
+                            game.state = GAME_STATE_PLAYING
+                        elif i == 1:
+                            game.state = GAME_STATE_MENU
+                            menu_system.selected = 0
+                            game.reset_game()
+                        elif i == 2:
+                            running = False
+            
+            menu_system.draw_pause_menu()
+        
+        pygame.display.flip()
+    
+    pygame.quit()
+    sys.exit()
 
-""" Configuração das 4 salas do jogo """
-rooms = [
-    Room(20, 20, 300, 200, (160, 220, 40, 10), (60, 60, 20, 20), draw_line, fill_rect),
-    Room(380, 20, 300, 200, (520, 220, 40, 10), (420, 60, 20, 20), draw_line, fill_rect),
-    Room(20, 260, 300, 200, (160, 260, 40, 10), (60, 300, 20, 20), draw_line, fill_rect),
-    Room(380, 260, 300, 200, (520, 260, 40, 10), (420, 300, 20, 20), draw_line, fill_rect),
-]
 
-""" Cria retângulos de parede para colisão (exceto na porta) """
-WALL_THICKNESS = 4
-walls = []
-
-for room in rooms:
-    x, y, w, h = room.x, room.y, room.w, room.h
-    dx, dy, dw, dh = room.door
-    side = room.door_side
-
-    left_x = x
-    right_x = x + w
-    top_y = y
-    bottom_y = y + h
-
-    if side == "top":
-        # parede superior com abertura para a porta
-        door_start = dx
-        door_end = dx + dw
-        if door_start > left_x:
-            walls.append(pygame.Rect(left_x, top_y - WALL_THICKNESS, door_start - left_x, WALL_THICKNESS))
-        if door_end < right_x:
-            walls.append(pygame.Rect(door_end, top_y - WALL_THICKNESS, right_x - door_end, WALL_THICKNESS))
-
-        # demais paredes completas
-        walls.append(pygame.Rect(left_x, bottom_y, w, WALL_THICKNESS))
-        walls.append(pygame.Rect(left_x - WALL_THICKNESS, top_y, WALL_THICKNESS, h))
-        walls.append(pygame.Rect(right_x, top_y, WALL_THICKNESS, h))
-
-    elif side == "bottom":
-        # parede inferior com abertura para a porta
-        door_start = dx
-        door_end = dx + dw
-        if door_start > left_x:
-            walls.append(pygame.Rect(left_x, bottom_y, door_start - left_x, WALL_THICKNESS))
-        if door_end < right_x:
-            walls.append(pygame.Rect(door_end, bottom_y, right_x - door_end, WALL_THICKNESS))
-
-        # demais paredes completas
-        walls.append(pygame.Rect(left_x, top_y - WALL_THICKNESS, w, WALL_THICKNESS))
-        walls.append(pygame.Rect(left_x - WALL_THICKNESS, top_y, WALL_THICKNESS, h))
-        walls.append(pygame.Rect(right_x, top_y, WALL_THICKNESS, h))
-
-    elif side == "left":
-        # parede esquerda com abertura para a porta
-        door_start = dy
-        door_end = dy + dh
-        if door_start > top_y:
-            walls.append(pygame.Rect(left_x - WALL_THICKNESS, top_y, WALL_THICKNESS, door_start - top_y))
-        if door_end < bottom_y:
-            walls.append(pygame.Rect(left_x - WALL_THICKNESS, door_end, WALL_THICKNESS, bottom_y - door_end))
-
-        # demais paredes completas
-        walls.append(pygame.Rect(left_x, top_y - WALL_THICKNESS, w, WALL_THICKNESS))
-        walls.append(pygame.Rect(left_x, bottom_y, w, WALL_THICKNESS))
-        walls.append(pygame.Rect(right_x, top_y, WALL_THICKNESS, h))
-
-    elif side == "right":
-        # parede direita com abertura para a porta
-        door_start = dy
-        door_end = dy + dh
-        if door_start > top_y:
-            walls.append(pygame.Rect(right_x, top_y, WALL_THICKNESS, door_start - top_y))
-        if door_end < bottom_y:
-            walls.append(pygame.Rect(right_x, door_end, WALL_THICKNESS, bottom_y - door_end))
-
-        # demais paredes completas
-        walls.append(pygame.Rect(left_x, top_y - WALL_THICKNESS, w, WALL_THICKNESS))
-        walls.append(pygame.Rect(left_x, bottom_y, w, WALL_THICKNESS))
-        walls.append(pygame.Rect(left_x - WALL_THICKNESS, top_y, WALL_THICKNESS, h))
-
-""" Inicialização do Jogador e Variáveis do Jogo """
-current_room = 0 
-player = Player(100, 100, draw_line, fill_rect)
-
-task_active = False
-task_progress = 0.0
-active_room = None
-
-""" Loop Principal do Jogo """
-running = True
-while running:
-    clock.tick(FPS)
-    screen.fill(BLACK)
-
-    """ Captura de Eventos """
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    """ Captura de Teclas Pressionadas e movimento com colisão nas paredes """
-    keys = pygame.key.get_pressed()
-    dx = 0
-    dy = 0
-    if keys[pygame.K_w]:
-        dy -= player.speed
-    if keys[pygame.K_s]:
-        dy += player.speed
-    if keys[pygame.K_a]:
-        dx -= player.speed
-    if keys[pygame.K_d]:
-        dx += player.speed
-
-    # movimento no eixo X com colisão
-    if dx != 0:
-        player.x += dx
-        for wall in walls:
-            if player.rect().colliderect(wall):
-                if dx > 0:
-                    player.x = wall.left - player.w
-                else:
-                    player.x = wall.right
-                break
-
-    # movimento no eixo Y com colisão
-    if dy != 0:
-        player.y += dy
-        for wall in walls:
-            if player.rect().colliderect(wall):
-                if dy > 0:
-                    player.y = wall.top - player.h
-                else:
-                    player.y = wall.bottom
-                break
-
-    """ Desenha as Salas do NC2A """
-    for room in rooms:
-        room.draw()
-
-    """ Lógica de Interação com Botões nas Salas (que podem ser outros elementos)"""
-    if not task_active:
-        active_room = None
-        for room in rooms:
-            if intersects(player.rect(), room.button):
-                if keys[pygame.K_e] and not room.completed:
-                    task_active = True
-                    active_room = room
-
-    """ Atualiza a Barra de Progresso se uma Tarefa estiver Ativa """
-    if task_active and active_room is not None:
-        task_progress += 1.0 / FPS
-        task_progress = min(task_progress, 1.0)
-        draw_progress_bar(250, 470, 200, task_progress)
-
-        if task_progress >= 1.0:
-            task_progress = 0.0
-            task_active = False
-            active_room.completed = True
-
-    """ Desenha o Jogador """
-    player.draw()
-
-    pygame.display.flip()
-
-pygame.quit()
-sys.exit()
+if __name__ == "__main__":
+    main()

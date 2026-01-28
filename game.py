@@ -1,4 +1,3 @@
-
 import pygame
 from constants import (
     WIDTH, HEIGHT, FPS, BLACK, WHITE,
@@ -78,31 +77,36 @@ class Game:
             Room(20, 20, 400, 180, (180, 190, 50, 10), (70, 35, 100, 30),
                  self.graphics.draw_line, self.graphics.fill_rect, self.screen,
                  "Prog. Matemática", self.camera.get_camera,
-                 self.graphics.fill_circle, is_meeting_room=False),
+                 self.graphics.fill_circle, is_meeting_room=False,
+                 fill_rect_textured=self.graphics.fill_rect_textured),
             
             # Sala 2: Complexidade 
             Room(480, 20, 400, 180, (640, 190, 50, 10), (550, 35, 100, 30),
                  self.graphics.draw_line, self.graphics.fill_rect, self.screen,
                  "Complexidade", self.camera.get_camera,
-                 self.graphics.fill_circle, is_meeting_room=False),
+                 self.graphics.fill_circle, is_meeting_room=False,
+                 fill_rect_textured=self.graphics.fill_rect_textured),
             
             # Sala 3: Machine Learning
             Room(20, 300, 400, 180, (180, 300, 50, 10), (70, 315, 100, 30),
                  self.graphics.draw_line, self.graphics.fill_rect, self.screen,
                  "Machine Learning", self.camera.get_camera,
-                 self.graphics.fill_circle, is_meeting_room=False),
+                 self.graphics.fill_circle, is_meeting_room=False,
+                 fill_rect_textured=self.graphics.fill_rect_textured),
             
             # Sala 4: Algebra Linear  
             Room(480, 300, 400, 180, (580, 300, 50, 10), (490, 315, 100, 30),
                  self.graphics.draw_line, self.graphics.fill_rect, self.screen,
                     "Algebra Linear", self.camera.get_camera,
-                    self.graphics.fill_circle, is_meeting_room=False),
+                    self.graphics.fill_circle, is_meeting_room=False,
+                    fill_rect_textured=self.graphics.fill_rect_textured),
             
             # Sala 5: Reunião de Equipe no GESAD 
             Room(250, 520, 400, 150, (410, 520, 50, 10), (300, 530, 80, 25),
                  self.graphics.draw_line, self.graphics.fill_rect, self.screen,
                  "Reunião", self.camera.get_camera,
-                 self.graphics.fill_circle, is_meeting_room=True),
+                 self.graphics.fill_circle, is_meeting_room=True,
+                 fill_rect_textured=self.graphics.fill_rect_textured),
         ]
     
     def _create_walls(self):

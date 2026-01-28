@@ -1,6 +1,7 @@
 import pygame
 import math
 
+
 """ Cores usadas na sala e objetos """
 GRAY   = (160, 160, 160)
 WHITE  = (255, 255, 255)
@@ -16,7 +17,6 @@ BROWN = (139, 90, 43)
 DARK_BROWN = (101, 67, 33)      
 LIGHT_BROWN = (181, 137, 87)    
 
-
 class Room:
     """ 
     Rom
@@ -26,7 +26,7 @@ class Room:
     usando interpolação linear entre keyframes discretos.
     A lousa dentro da sala exibe uma tarefa que pode ser marcada como concluída.
     """
-    def __init__(self, x, y, w, h, door, button, draw_line, fill_rect, screen, board_text="Tarefa", get_camera=None, fill_circle=None, is_meeting_room=False):
+    def __init__(self, x, y, w, h, door, button, draw_line, fill_rect, screen, board_text="Tarefa", get_camera=None, fill_circle=None, is_meeting_room=False, fill_rect_textured=None):
         
         """
         Inicializa a sala com posição, dimensões, porta, lousa e funções de desenho.
@@ -86,6 +86,8 @@ class Room:
             ],
             key=lambda t: t[0],
         )[1]
+
+        self.fill_rect_textured = fill_rect_textured
 
     def interact_door(self):
         """
@@ -241,7 +243,7 @@ class Room:
             py = table_cy + int(table_radius * math.sin(rad))
             self.draw_line(px, py, px + 1, py, DARK_BROWN)
         
-        """ Desenha 6 cadeiras ao redor da mesa no GESAD"""
+        # Desenha 6 cadeiras ao redor da mesa no GESAD
         chair_distance = table_radius + 20
         for i in range(6):
             angle = math.radians(i * 60) 
@@ -271,7 +273,20 @@ class Room:
         e a lousa dentro da sala com o texto da tarefa.
         Usa as funções draw_line e fill_rect com transformação de câmera.
         """
-        self.fill_rect(self.x, self.y, self.w, self.h, GRAY)
+
+        WALL_TEXTURE = "brick"
+        WALL_THICKNESS = 10
+
+        def wall(x, y, w, h):
+            if self.fill_rect_textured:
+                self.fill_rect_textured(x, y, w, h, texture_type=WALL_TEXTURE)
+            else:
+                self.fill_rect(x, y, w, h, DARK_GREEN)
+
+        if self.fill_rect_textured:
+            self.fill_rect_textured(self.x, self.y, self.w, self.h, texture_type="stripes")
+        else:
+            self.fill_rect(self.x, self.y, self.w, self.h, GRAY)
         
         """ Borda preta do retângulo da sala """
         BLACK = (0, 0, 0)
@@ -285,29 +300,30 @@ class Room:
         side = self.door_side
 
         """ Paredes internas (pretas para contraste com fundo branco) """
+
         if side == "top":
-            self.draw_line(x, y, dx, y, BLACK)
-            self.draw_line(dx + dw, y, x + w, y, BLACK)
+            wall(x, y, dx - x, WALL_THICKNESS)
+            wall(dx + dw, y, (x + w) - (dx + dw), WALL_THICKNESS)
         else:
-            self.draw_line(x, y, x + w, y, BLACK)
+            wall(x, y, w, WALL_THICKNESS)
 
         if side == "bottom":
-            self.draw_line(x, y + h, dx, y + h, BLACK)
-            self.draw_line(dx + dw, y + h, x + w, y + h, BLACK)
+            wall(x, y + h - WALL_THICKNESS, dx - x, WALL_THICKNESS)
+            wall(dx + dw, y + h - WALL_THICKNESS, (x + w) - (dx + dw), WALL_THICKNESS)
         else:
-            self.draw_line(x, y + h, x + w, y + h, BLACK)
+            wall(x, y + h - WALL_THICKNESS, w, WALL_THICKNESS)
 
         if side == "left":
-            self.draw_line(x, y, x, dy, BLACK)
-            self.draw_line(x, dy + dh, x, y + h, BLACK)
+            wall(x, y, WALL_THICKNESS, dy - y)
+            wall(x, dy + dh, WALL_THICKNESS, (y + h) - (dy + dh))
         else:
-            self.draw_line(x, y, x, y + h, BLACK)
+            wall(x, y, WALL_THICKNESS, h)
 
         if side == "right":
-            self.draw_line(x + w, y, x + w, dy, BLACK)
-            self.draw_line(x + w, dy + dh, x + w, y + h, BLACK)
+            wall(x + w - WALL_THICKNESS, y, WALL_THICKNESS, dy - y)
+            wall(x + w - WALL_THICKNESS, dy + dh, WALL_THICKNESS, (y + h) - (dy + dh))
         else:
-            self.draw_line(x + w, y, x + w, y + h, WHITE)
+            wall(x + w - WALL_THICKNESS, y, WALL_THICKNESS, h)
 
         """ 
         Desenha a Porta (retângulo amarelo) com animação
@@ -330,6 +346,7 @@ class Room:
                 self.draw_line(door_draw_x, dy, door_draw_x, dy + dh, DARK_YELLOW)
                 self.draw_line(door_draw_x + door_draw_w, dy, door_draw_x + door_draw_w, dy + dh, DARK_YELLOW)
         else:
+            offset = int(dh * self.door_progress)
             door_draw_y = dy + offset
             door_draw_h = dh - offset  
             

@@ -285,7 +285,7 @@ class Graphics:
                         
                 elif texture_type == "stripes":
                     stripe_w = 6
-                    if (lx // stripe_w) % 2 == 0:
+                    if (ly // stripe_w) % 2 == 0:
                         color = (180, 180, 100)
                     else:
                         color = (140, 140, 80)
@@ -330,3 +330,12 @@ class Graphics:
         fill = int(w * progress)
         if fill > 0:
             self.fill_rect(x, y, fill, 10, (50, 200, 50), use_camera=False)
+
+    def apply_shadow(self, color, factor):
+        shadow_strength = 0.4
+        f = 1.0 - factor * shadow_strength
+        return (
+            int(color[0] * f),
+            int(color[1] * f),
+            int(color[2] * f),
+        )

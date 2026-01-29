@@ -321,7 +321,7 @@ class Game:
         self.player.draw()
         
         """ Desenha viewport"""
-        viewport_matrix = self.viewport.create_matrix(self.player, self.rooms, self.walls)
+        viewport_matrix = self.viewport.create_matrix(self.player, self.rooms, self.walls, self.fan_positions)
         self.viewport.draw(viewport_matrix, WIDTH - 280, 20, vp_scale=3)
         
         """ Instruções"""

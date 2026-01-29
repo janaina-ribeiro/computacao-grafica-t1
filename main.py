@@ -3,7 +3,7 @@ import sys
 
 from constants import (
     WIDTH, HEIGHT, FPS, BLACK, WHITE,
-    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED
+    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED, GAME_STATE_SPLASH
 )
 from camera import Camera
 from graphics import Graphics
@@ -70,6 +70,10 @@ def main():
     """Cria o jogo (gerencia salas, colisão, tarefas)"""
     game = Game(screen, graphics, camera, player, menu_system, viewport)
     
+    """Configuração inicial"""
+    game.state = GAME_STATE_SPLASH
+    splash_start_time = pygame.time.get_ticks()
+    
     """Variáveis de estado local"""
     show_controls = False
     
@@ -94,7 +98,9 @@ def main():
                     mouse_clicked = True
             
             elif event.type == pygame.KEYDOWN:
-                if game.state == GAME_STATE_MENU:
+                if game.state == GAME_STATE_SPLASH:
+                    game.state = GAME_STATE_MENU
+                elif game.state == GAME_STATE_MENU:
                     if show_controls:
                         show_controls = False
                     elif event.key in (pygame.K_w, pygame.K_UP):
@@ -141,7 +147,12 @@ def main():
         
         """Renderização e lógica por estado"""
         
-        if game.state == GAME_STATE_MENU:
+        if game.state == GAME_STATE_SPLASH:
+            menu_system.draw_splash_screen()
+            if pygame.time.get_ticks() - splash_start_time > 3000:
+                game.state = GAME_STATE_MENU
+
+        elif game.state == GAME_STATE_MENU:
             if show_controls:
                 menu_system.draw_controls_screen()
             else:

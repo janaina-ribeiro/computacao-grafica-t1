@@ -189,7 +189,13 @@ Navegação por teclado (W/S para mover, ENTER para selecionar) e mouse (hover +
 
 ##  Como Executar
 
-Para executar instale o gerenciador de pacotes `uv` para gerenciar dependências. Após isso, clone o repositório e execute os comandos abaixo no terminal:
+Para executar instale o gerenciador de pacotes `uv` para gerenciar dependências:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Após isso, clone o repositório e execute os comandos abaixo no terminal:
 
 ```bash
 # Clonar o repositório

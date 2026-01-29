@@ -1,5 +1,5 @@
 import pygame
-from constants import WIDTH, HEIGHT, WHITE, YELLOW, BLUE, DARK_GRAY
+from constants import WIDTH, HEIGHT, WHITE, YELLOW, BLUE, DARK_GRAY, BLACK
 
 
 class MenuSystem:
@@ -27,6 +27,34 @@ class MenuSystem:
         
         self.selected = 0
     
+    def draw_splash_screen(self):
+        """
+        Desenha a Splash Screen (Intro)
+        """
+        self.screen.fill(BLACK)
+        
+        # Title
+        title = self.menu_font.render("Trabalho de Computação Gráfica", True, YELLOW)
+        self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, HEIGHT // 3))
+        
+        # Team Header
+        team_header = self.game_font.render("Equipe:", True, BLUE)
+        self.screen.blit(team_header, (WIDTH // 2 - team_header.get_width() // 2, HEIGHT // 2))
+        
+        # Team Members
+        members = [
+            "Janaína Ribeiro",
+            "Joaquim Ribeiro",
+            "Marcio Gabriel",
+            "Suyane Carvalho"
+        ]
+        
+        y_offset = HEIGHT // 2 + 30
+        for member in members:
+            text = self.game_font.render(member, True, WHITE)
+            self.screen.blit(text, (WIDTH // 2 - text.get_width() // 2, y_offset))
+            y_offset += 25
+
     def draw_main_menu(self, rotation_angle):
         """
         Desenha o menu principal usando FLOOD FILL para preenchimento.

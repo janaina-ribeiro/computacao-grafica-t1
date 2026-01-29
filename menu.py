@@ -119,7 +119,9 @@ class MenuSystem:
             "D/Seta Direita - Mover para direita",
             "E - Interagir (portas e lousas)",
             "ESC - Pausar jogo",
-            "Mouse - Navegar menus e clicar em portas/lousas"
+            "Mouse - Navegar menus e clicar em portas/lousas",
+            "+  Zoom in",
+            "-  Zoom out",
         ]
         
         y = 150

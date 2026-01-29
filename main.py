@@ -114,6 +114,12 @@ def main():
                     if event.key == pygame.K_ESCAPE:
                         game.state = GAME_STATE_PAUSED
                         menu_system.selected = 0
+                    elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
+                        camera.zoom_in()
+                    elif event.key in (pygame.K_MINUS, pygame.K_UNDERSCORE, pygame.K_KP_MINUS):
+                        camera.zoom_out()
+                    elif event.key in (pygame.K_0, pygame.K_KP0):
+                        camera.reset_zoom()
                 
                     """ Pausado"""
                 elif game.state == GAME_STATE_PAUSED:

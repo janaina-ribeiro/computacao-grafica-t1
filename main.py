@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 
 from constants import (
     WIDTH, HEIGHT, FPS, BLACK, WHITE,
@@ -53,9 +54,21 @@ def main():
 
     """Inicialização do Pygame"""
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("NC2A - Game")
     clock = pygame.time.Clock()
+
+    """Carregar Música"""
+    try:
+        music_path = os.path.join("assets", "music.mp3")
+        if os.path.exists(music_path):
+            pygame.mixer.music.load(music_path)
+            pygame.mixer.music.set_volume(0.5)
+        else:
+            print("Aviso: music.mp3 não encontrado em assets/")
+    except pygame.error as e:
+        print(f"Erro ao carregar música: {e}")
     
     """Inicializa sistemas"""
     camera = Camera()
@@ -100,6 +113,9 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if game.state == GAME_STATE_SPLASH:
                     game.state = GAME_STATE_MENU
+                    if not pygame.mixer.music.get_busy():
+                        try: pygame.mixer.music.play(-1)
+                        except: pass
                 elif game.state == GAME_STATE_CONGRATS:
                     game.state = GAME_STATE_MENU
                     game.reset_game()
@@ -154,6 +170,9 @@ def main():
             menu_system.draw_splash_screen()
             if pygame.time.get_ticks() - splash_start_time > 3000:
                 game.state = GAME_STATE_MENU
+                if not pygame.mixer.music.get_busy():
+                    try: pygame.mixer.music.play(-1)
+                    except: pass
 
         elif game.state == GAME_STATE_MENU:
             if show_controls:

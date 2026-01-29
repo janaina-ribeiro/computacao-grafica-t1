@@ -12,6 +12,23 @@ from menu import MenuSystem
 from game import Game
 from player import Player
 
+def draw_background(screen, width, height):
+    """
+    Gera um fundo com gradiente vertical para o jogo.
+    """
+    screen.fill((245, 245, 245))
+
+    for y in range(height):
+        factor = y / height
+        shade = int(100 * factor)
+
+        color = (
+            245 - shade,
+            245 - shade,
+            245 - shade
+        )
+
+        pygame.draw.line(screen, color, (0, y), (width, y))
 
 def main():
     """
@@ -62,8 +79,8 @@ def main():
         dt = clock.tick(FPS) / 1000.0
         
         game.update(dt)
-        screen.fill(WHITE)
-        
+        draw_background(screen, WIDTH, HEIGHT)
+
         mouse_x, mouse_y = pygame.mouse.get_pos()
         mouse_clicked = False
         

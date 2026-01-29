@@ -33,3 +33,34 @@ class Camera:
         world_x = (screen_x - WIDTH / 2) / self.zoom + self.x
         world_y = (screen_y - HEIGHT / 2) / self.zoom + self.y
         return world_x, world_y
+    def zoom_in(self, factor=1.2):
+        """
+        Aumenta o zoom (aproxima a câmera). Equivale a DIMINUIR o tamanho da Janela no mundo.
+        
+        Parâmetros:
+        - factor: Fator multiplicativo (1.2 = 20% de aumento)
+        """
+        self.zoom = min(self.zoom * factor, 5.0)  # Máximo 5x
+    
+    def zoom_out(self, factor=1.2):
+        """
+        Diminui o zoom (afasta a câmera).Equivale a AUMENTAR o tamanho da Janela no mundo.
+        """
+        self.zoom = max(self.zoom / factor, 0.5)  # Mínimo 0.5x
+    
+    def reset_zoom(self):
+        """Reseta o zoom para o valor padrão (ZOOM constante)."""
+        self.zoom = ZOOM
+    
+    def get_window_bounds(self):
+        """
+        Retorna os limites da Janela (Window) no mundo. """
+        half_w = (WIDTH / 2) / self.zoom
+        half_h = (HEIGHT / 2) / self.zoom
+        
+        return (
+            self.x - half_w,  # wx_min
+            self.y - half_h,  # wy_min
+            self.x + half_w,  # wx_max
+            self.y + half_h   # wy_max
+        )

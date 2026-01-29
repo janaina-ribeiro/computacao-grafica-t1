@@ -141,6 +141,55 @@ class Viewport:
         
         return matrix
     
+    
+    def draw_camera_bounds(self, camera, vp_x, vp_y, vp_scale=3):
+        """Desenha um retângulo no mini-mapa mostrando a Janela (Window) atual."""
+        from constants import BLUE
+        
+        cell_size = 10  # Cada célula do minimapa = 10x10 pixels do mundo
+        
+        # Obtém limites da Janela no mundo
+        wx_min, wy_min, wx_max, wy_max = camera.get_window_bounds()
+        
+        # Converte para coordenadas da matriz do mini-mapa
+        matrix_left = int(wx_min / cell_size)
+        matrix_top = int(wy_min / cell_size)
+        matrix_right = int(wx_max / cell_size)
+        matrix_bottom = int(wy_max / cell_size)
+        
+        # Converte para pixels na tela (viewport do minimapa)
+        rect_x = vp_x + matrix_left * vp_scale
+        rect_y = vp_y + matrix_top * vp_scale
+        rect_w = (matrix_right - matrix_left) * vp_scale
+        rect_h = (matrix_bottom - matrix_top) * vp_scale
+        
+        # Desenha retângulo azul mostrando a "Janela" atual
+        for thickness in range(2):
+            t = thickness
+            # Topo
+            self.graphics.draw_line(
+                rect_x + t, rect_y + t,
+                rect_x + rect_w - t, rect_y + t,
+                BLUE, use_camera=False
+            )
+            # Direita
+            self.graphics.draw_line(
+                rect_x + rect_w - t, rect_y + t,
+                rect_x + rect_w - t, rect_y + rect_h - t,
+                BLUE, use_camera=False
+            )
+            # Baixo
+            self.graphics.draw_line(
+                rect_x + rect_w - t, rect_y + rect_h - t,
+                rect_x + t, rect_y + rect_h - t,
+                BLUE, use_camera=False
+            )
+            # Esquerda
+            self.graphics.draw_line(
+                rect_x + t, rect_y + rect_h - t,
+                rect_x + t, rect_y + t,
+                BLUE, use_camera=False
+            )
     def draw(self, matrix, vp_x, vp_y, vp_scale=3):
         """
         Desenha o mini-mapa usando APENAS set_pixel
@@ -168,3 +217,6 @@ class Viewport:
         """Título do mini-mapa"""
         title = self.title_font.render("MAPA NC2A", True, BLACK)
         self.screen.blit(title, (vp_x + vp_width // 2 - title.get_width() // 2, vp_y - 15))
+        
+        #desenha janela no minimapa        
+        self.draw_camera_bounds(self.graphics.camera, vp_x, vp_y, vp_scale)

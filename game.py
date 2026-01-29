@@ -325,7 +325,7 @@ class Game:
         self.viewport.draw(viewport_matrix, WIDTH - 280, 20, vp_scale=3)
         
         """ Instruções"""
-        help_text = self.small_font.render("WASD: Mover | SHIFT: Correr | E: Interagir | ESC: Pausar", True, BLACK)
+        help_text = self.small_font.render("WASD: Mover | SHIFT: Correr | E: Interagir | ESC: Pausar | + Zoom in | - Zoom out" , True, BLACK)
         self.screen.blit(help_text, (10, HEIGHT - 25))
     
     def _intersects(self, r1, r2):

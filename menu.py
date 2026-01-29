@@ -1,5 +1,5 @@
 import pygame
-from constants import WIDTH, HEIGHT, WHITE, YELLOW, BLUE, DARK_GRAY, BLACK
+from constants import WIDTH, HEIGHT, WHITE, YELLOW, BLUE, DARK_GRAY, BLACK, GREEN
 
 
 class MenuSystem:
@@ -132,6 +132,27 @@ class MenuSystem:
             text = self.small_font.render(option, True, color)
             self.screen.blit(text, (box_x + 50, option_y))
             option_y += 40
+
+    def draw_congrats_screen(self):
+        """Desenha a tela de Parabéns"""
+        self.screen.fill(BLACK)
+        
+        # Confetti effect (simple random dots)
+        import random
+        for _ in range(50):
+            x = random.randint(0, WIDTH)
+            y = random.randint(0, HEIGHT)
+            color = random.choice([YELLOW, BLUE, GREEN, WHITE])
+            self.graphics.set_pixel(x, y, color, use_camera=False)
+            
+        title = self.menu_font.render("PARABÉNS!", True, GREEN)
+        self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, HEIGHT // 2 - 50))
+        
+        subtitle = self.game_font.render("Todas as tarefas foram completadas.", True, WHITE)
+        self.screen.blit(subtitle, (WIDTH // 2 - subtitle.get_width() // 2, HEIGHT // 2 + 10))
+        
+        info = self.small_font.render("Pressione qualquer tecla para voltar ao menu...", True, DARK_GRAY)
+        self.screen.blit(info, (WIDTH // 2 - info.get_width() // 2, HEIGHT - 50))
     
     def draw_controls_screen(self):
         """Desenha tela de controles"""

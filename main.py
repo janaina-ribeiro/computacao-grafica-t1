@@ -3,7 +3,7 @@ import sys
 
 from constants import (
     WIDTH, HEIGHT, FPS, BLACK, WHITE,
-    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED, GAME_STATE_SPLASH
+    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED, GAME_STATE_SPLASH, GAME_STATE_CONGRATS
 )
 from camera import Camera
 from graphics import Graphics
@@ -100,6 +100,9 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if game.state == GAME_STATE_SPLASH:
                     game.state = GAME_STATE_MENU
+                elif game.state == GAME_STATE_CONGRATS:
+                    game.state = GAME_STATE_MENU
+                    game.reset_game()
                 elif game.state == GAME_STATE_MENU:
                     if show_controls:
                         show_controls = False
@@ -207,6 +210,9 @@ def main():
                             running = False
             
             menu_system.draw_pause_menu()
+        
+        elif game.state == GAME_STATE_CONGRATS:
+            menu_system.draw_congrats_screen()
         
         pygame.display.flip()
     

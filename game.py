@@ -1,8 +1,8 @@
 import pygame
 from constants import (
-    WIDTH, HEIGHT, FPS, BLACK, WHITE,
-    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED,
-    WALL_THICKNESS
+    WIDTH, HEIGHT, FPS, BLACK, WHITE, GREEN,
+    GAME_STATE_MENU, GAME_STATE_PLAYING, GAME_STATE_PAUSED, GAME_STATE_CONGRATS,
+    WALL_THICKNESS, MAX_TASKS
 )
 from rooms import Room
 
@@ -276,6 +276,11 @@ class Game:
                 self.task_progress = 0.0
                 self.task_active = False
                 self.active_room.completed = True
+                
+                # Check for victory
+                completed_count = sum(1 for r in self.rooms if r.completed)
+                if completed_count >= MAX_TASKS:
+                    self.state = GAME_STATE_CONGRATS
     
     def handle_mouse_click(self, mouse_x, mouse_y):
         """
@@ -327,6 +332,32 @@ class Game:
         """ Desenha viewport"""
         viewport_matrix = self.viewport.create_matrix(self.player, self.rooms, self.walls, self.fan_positions)
         self.viewport.draw(viewport_matrix, WIDTH - 280, 20, vp_scale=3)
+        
+        """ HUD: Barra de Tarefas (Among Us Style) """
+        bar_x, bar_y = 10, 10
+        bar_w, bar_h = 200, 20
+        
+        # Fundo da barra
+        self.graphics.fill_rect(bar_x, bar_y, bar_w, bar_h, (50, 50, 50), use_camera=False)
+        self.graphics.draw_rect(bar_x, bar_y, bar_w, bar_h, WHITE, use_camera=False)
+        
+        # Progresso
+        completed_count = sum(1 for r in self.rooms if r.completed)
+        progress_ratio = completed_count / MAX_TASKS
+        fill_w = int(bar_w * progress_ratio)
+        
+        if fill_w > 0:
+            self.graphics.fill_rect(bar_x, bar_y, fill_w, bar_h, GREEN, use_camera=False)
+            
+        # Segments
+        segment_w = bar_w / MAX_TASKS
+        for i in range(1, MAX_TASKS):
+            sx = int(bar_x + i * segment_w)
+            self.graphics.draw_line(sx, bar_y, sx, bar_y + bar_h, BLACK, use_camera=False)
+            
+        # Texto
+        task_text = self.small_font.render(f"Tarefas: {completed_count}/{MAX_TASKS}", True, WHITE)
+        self.screen.blit(task_text, (bar_x, bar_y + bar_h + 5))
         
         """ Instruções"""
         help_text = self.small_font.render("WASD: Mover | SHIFT: Correr | E: Interagir | ESC: Pausar | + Zoom in | - Zoom out" , True, BLACK)

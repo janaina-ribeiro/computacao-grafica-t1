@@ -22,9 +22,11 @@ GAME_STATE_SPLASH = 3
 GAME_STATE_MENU = 0
 GAME_STATE_PLAYING = 1
 GAME_STATE_PAUSED = 2
+GAME_STATE_CONGRATS = 4
 
 """ Configurações da câmera """
 ZOOM = 2.0
+MAX_TASKS = 5
 
 """ Configurações de colisão """
 WALL_THICKNESS = 4

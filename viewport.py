@@ -26,13 +26,13 @@ class Viewport:
         self.graphics = graphics
         self.title_font = pygame.font.SysFont('Arial', 12)
     
-    def create_matrix(self, player, rooms, walls, grid_width=90, grid_height=70):
+    def create_matrix(self, player, rooms, walls, fan_positions=None, grid_width=90, grid_height=70):
         """
         Cria a matriz do mini-mapa
         ---------------------------
         Converte o mundo de coordenadas para uma matriz com cores reais.
         Cada célula da matriz representa 10x10 pixels do mundo.
-        Inclui mesas e cadeiras.
+        Inclui mesas, cadeiras e ventiladores.
         """
         cell_size = 10
         matrix = [[WHITE for _ in range(grid_width)] for _ in range(grid_height)]
@@ -127,6 +127,23 @@ class Viewport:
                         
                         if 0 <= cy_start < grid_height and 0 <= cx_start < grid_width:
                             matrix[cy_start][cx_start] = BROWN
+        
+        """ventiladores no mini-mapa"""
+        if fan_positions is not None:
+            fan_color = (100, 200, 255)  # Azul claro para os ventiladores
+            for fx, fy in fan_positions:
+                fan_cx = fx // cell_size
+                fan_cy = fy // cell_size
+                fan_radius = 1  # 1 célula de raio
+                
+                # Desenha círculo simples no minimapa
+                for dy in range(-fan_radius, fan_radius + 1):
+                    for dx in range(-fan_radius, fan_radius + 1):
+                        if dx*dx + dy*dy <= fan_radius*fan_radius:
+                            fi = fan_cy + dy
+                            fj = fan_cx + dx
+                            if 0 <= fi < grid_height and 0 <= fj < grid_width:
+                                matrix[fi][fj] = fan_color
         
         """Desenha o jogador (vermelho, maior para visibilidade)"""
         player_x = player.x // cell_size
